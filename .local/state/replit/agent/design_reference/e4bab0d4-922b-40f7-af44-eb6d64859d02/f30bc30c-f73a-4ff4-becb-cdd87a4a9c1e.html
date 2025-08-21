@@ -1,0 +1,418 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yatraflow - Real-Time Traffic Alerts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'accident': '#F44336',
+                        'traffic': '#FFC107', 
+                        'hazard': '#FF9800',
+                        'primary': '#1976D2',
+                        'surface': '#FFFFFF',
+                        'background': '#FAFAFA'
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-inter bg-background text-gray-800">
+    <!-- @COMPONENT: AppHeader [user auth status, notifications] -->
+    <header class="bg-primary text-white shadow-lg relative z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-route text-2xl"></i>
+                    <h1 class="text-xl font-semibold">Yatraflow</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Real-time status indicator -->
+                    <div class="flex items-center space-x-2 bg-green-500 px-3 py-1 rounded-full text-sm">
+                        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                        <span data-bind="connectionStatus">Live</span>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button data-event="click:toggleNotifications" class="relative p-2 hover:bg-blue-700 rounded-lg transition-colors">
+                            <i class="fas fa-bell text-lg"></i>
+                            <span data-bind="unreadCount" class="absolute -top-1 -right-1 bg-accident text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                        </button>
+                    </div>
+                    
+                    <!-- User menu -->
+                    <div class="flex items-center space-x-2">
+                        <span data-bind="user.name" class="hidden md:block">John Doe</span>
+                        <button data-event="click:toggleUserMenu" class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center">
+                            <i class="fas fa-user text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: AppHeader -->
+
+    <div class="flex h-screen pt-16 relative">
+        <!-- @COMPONENT: AlertsSidebar [alerts list, filters] -->
+        <aside id="alertsSidebar" class="w-80 bg-surface shadow-xl transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out absolute lg:relative z-40 h-full">
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-gray-800">Live Alerts</h2>
+                    <button class="lg:hidden text-gray-500 hover:text-gray-700" data-event="click:closeSidebar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Alert filters -->
+                <div class="flex space-x-2">
+                    <button data-event="click:filterAlerts" data-filter="all" class="px-3 py-1 bg-primary text-white rounded-full text-sm">All</button>
+                    <button data-event="click:filterAlerts" data-filter="accident" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-accident hover:text-white transition-colors">
+                        <i class="fas fa-car-crash mr-1"></i>Accidents
+                    </button>
+                    <button data-event="click:filterAlerts" data-filter="traffic" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-traffic hover:text-gray-800 transition-colors">
+                        <i class="fas fa-traffic-light mr-1"></i>Traffic
+                    </button>
+                    <button data-event="click:filterAlerts" data-filter="hazard" class="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-hazard hover:text-white transition-colors">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>Hazards
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alerts list -->
+            <div class="overflow-y-auto h-full pb-20">
+                <!-- @MAP: alerts.map(alert => ( -->
+                <div data-mock="true" class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-3 h-3 bg-accident rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <span data-bind="alert.type" class="text-sm font-medium text-accident">Accident</span>
+                                <span data-bind="alert.timeAgo" class="text-xs text-gray-500">2 min ago</span>
+                            </div>
+                            <p data-bind="alert.description" class="text-sm text-gray-700 mb-2">Multi-car collision on Highway 101 near Exit 15. Traffic backed up 2 miles.</p>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span data-bind="alert.location">Highway 101, Mile 15</span>
+                                <span class="mx-2">•</span>
+                                <span data-bind="alert.distance">0.8 mi away</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-mock="true" class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-3 h-3 bg-traffic rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <span data-bind="alert.type" class="text-sm font-medium text-yellow-700">Heavy Traffic</span>
+                                <span data-bind="alert.timeAgo" class="text-xs text-gray-500">5 min ago</span>
+                            </div>
+                            <p data-bind="alert.description" class="text-sm text-gray-700 mb-2">Slow moving traffic on Main Street due to construction work. Expect 15-20 min delays.</p>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span data-bind="alert.location">Main Street & 5th Ave</span>
+                                <span class="mx-2">•</span>
+                                <span data-bind="alert.distance">1.2 mi away</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-mock="true" class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-3 h-3 bg-hazard rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <span data-bind="alert.type" class="text-sm font-medium text-orange-700">Road Hazard</span>
+                                <span data-bind="alert.timeAgo" class="text-xs text-gray-500">8 min ago</span>
+                            </div>
+                            <p data-bind="alert.description" class="text-sm text-gray-700 mb-2">Large pothole reported in right lane. Drive with caution.</p>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span data-bind="alert.location">Oak Street Bridge</span>
+                                <span class="mx-2">•</span>
+                                <span data-bind="alert.distance">2.1 mi away</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-mock="true" class="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-3 h-3 bg-accident rounded-full mt-2 flex-shrink-0"></div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <span data-bind="alert.type" class="text-sm font-medium text-accident">Accident</span>
+                                <span data-bind="alert.timeAgo" class="text-xs text-gray-500">12 min ago</span>
+                            </div>
+                            <p data-bind="alert.description" class="text-sm text-gray-700 mb-2">Fender bender blocking left turn lane. Emergency services on scene.</p>
+                            <div class="flex items-center text-xs text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span data-bind="alert.location">Pine & Elm Intersection</span>
+                                <span class="mx-2">•</span>
+                                <span data-bind="alert.distance">0.5 mi away</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- @END_MAP )) -->
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: AlertsSidebar -->
+
+        <!-- @COMPONENT: MapContainer [interactive map, alert markers] -->
+        <main class="flex-1 relative">
+            <!-- Map placeholder with mock markers -->
+            <div class="w-full h-full bg-gray-200 relative overflow-hidden">
+                <!-- Street grid background -->
+                <div class="absolute inset-0 opacity-20">
+                    <svg class="w-full h-full">
+                        <defs>
+                            <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+                                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                    </svg>
+                </div>
+                
+                <!-- Mock street names -->
+                <div class="absolute top-20 left-32 text-gray-600 text-sm font-medium transform -rotate-12">Main Street</div>
+                <div class="absolute top-40 left-20 text-gray-600 text-sm font-medium">Highway 101</div>
+                <div class="absolute bottom-40 right-32 text-gray-600 text-sm font-medium transform rotate-45">Oak Street</div>
+                
+                <!-- Alert markers on map -->
+                <!-- @FUNCTIONALITY: Real markers should use Google Maps API with custom icons -->
+                
+                <!-- Accident marker -->
+                <div class="absolute top-32 left-48 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer" data-event="click:showAlertDetails" data-alert-id="1">
+                    <div class="w-8 h-8 bg-accident rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
+                        <i class="fas fa-car-crash text-xs"></i>
+                    </div>
+                    <div class="absolute top-8 left-1/2 transform -translate-x-1/2 bg-accident text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">
+                        Highway 101 Accident
+                    </div>
+                </div>
+                
+                <!-- Traffic marker -->
+                <div class="absolute top-64 left-72 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer" data-event="click:showAlertDetails" data-alert-id="2">
+                    <div class="w-8 h-8 bg-traffic rounded-full flex items-center justify-center text-gray-800 shadow-lg hover:scale-110 transition-transform">
+                        <i class="fas fa-traffic-light text-xs"></i>
+                    </div>
+                    <div class="absolute top-8 left-1/2 transform -translate-x-1/2 bg-traffic text-gray-800 text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">
+                        Main St Heavy Traffic
+                    </div>
+                </div>
+                
+                <!-- Hazard marker -->
+                <div class="absolute bottom-48 right-48 transform -translate-x-1/2 -translate-y-1/2 cursor-pointer" data-event="click:showAlertDetails" data-alert-id="3">
+                    <div class="w-8 h-8 bg-hazard rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
+                        <i class="fas fa-exclamation-triangle text-xs"></i>
+                    </div>
+                    <div class="absolute top-8 left-1/2 transform -translate-x-1/2 bg-hazard text-white text-xs px-2 py-1 rounded whitespace-nowrap opacity-0 hover:opacity-100 transition-opacity">
+                        Oak St Road Hazard
+                    </div>
+                </div>
+                
+                <!-- User location marker -->
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div class="w-4 h-4 bg-primary rounded-full border-2 border-white shadow-lg animate-pulse"></div>
+                    <div class="absolute -inset-2 border-2 border-primary rounded-full opacity-30 animate-ping"></div>
+                </div>
+                
+                <!-- Map controls -->
+                <div class="absolute top-4 right-4 space-y-2">
+                    <button data-event="click:zoomIn" class="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-plus text-gray-600"></i>
+                    </button>
+                    <button data-event="click:zoomOut" class="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-minus text-gray-600"></i>
+                    </button>
+                    <button data-event="click:centerOnUser" class="w-10 h-10 bg-white rounded-lg shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-crosshairs text-gray-600"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Mobile sidebar toggle -->
+            <button class="lg:hidden absolute top-4 left-4 z-50 w-12 h-12 bg-white rounded-lg shadow-lg flex items-center justify-center" data-event="click:toggleSidebar">
+                <i class="fas fa-bars text-gray-600"></i>
+            </button>
+        </main>
+        <!-- @END_COMPONENT: MapContainer -->
+    </div>
+
+    <!-- @COMPONENT: ReportAlertFAB [floating action button for reporting] -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <button data-event="click:openReportModal" class="w-14 h-14 bg-primary hover:bg-blue-700 text-white rounded-full shadow-xl flex items-center justify-center transition-all duration-200 hover:scale-105">
+            <i class="fas fa-plus text-xl"></i>
+        </button>
+    </div>
+    <!-- @END_COMPONENT: ReportAlertFAB -->
+
+    <!-- @COMPONENT: ReportAlertModal [modal for submitting new alerts] -->
+    <div id="reportModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md transform transition-all duration-300 scale-95">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">Report Alert</h3>
+                    <button data-event="click:closeReportModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form data-event="submit:submitAlert">
+                    <!-- Alert type selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Alert Type</label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button type="button" data-event="click:selectAlertType" data-type="accident" class="p-4 border-2 border-gray-200 rounded-lg hover:border-accident hover:bg-red-50 transition-colors text-center">
+                                <i class="fas fa-car-crash text-accident text-xl mb-2"></i>
+                                <div class="text-sm font-medium">Accident</div>
+                            </button>
+                            <button type="button" data-event="click:selectAlertType" data-type="traffic" class="p-4 border-2 border-gray-200 rounded-lg hover:border-traffic hover:bg-yellow-50 transition-colors text-center">
+                                <i class="fas fa-traffic-light text-traffic text-xl mb-2"></i>
+                                <div class="text-sm font-medium">Traffic</div>
+                            </button>
+                            <button type="button" data-event="click:selectAlertType" data-type="hazard" class="p-4 border-2 border-gray-200 rounded-lg hover:border-hazard hover:bg-orange-50 transition-colors text-center">
+                                <i class="fas fa-exclamation-triangle text-hazard text-xl mb-2"></i>
+                                <div class="text-sm font-medium">Hazard</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Location -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                        <div class="relative">
+                            <input type="text" data-bind="currentLocation" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Current location will be used" readonly>
+                            <button type="button" data-event="click:useCurrentLocation" class="absolute right-3 top-3 text-primary hover:text-blue-700">
+                                <i class="fas fa-crosshairs"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" rows="3" placeholder="Provide details about the alert..."></textarea>
+                    </div>
+                    
+                    <!-- Submit button -->
+                    <button type="submit" class="w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors">
+                        Submit Alert
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: ReportAlertModal -->
+
+    <!-- @COMPONENT: BottomNavigation [mobile navigation] -->
+    <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+        <div class="flex">
+            <button data-event="click:showMap" class="flex-1 py-3 flex flex-col items-center justify-center text-primary">
+                <i class="fas fa-map text-lg mb-1"></i>
+                <span class="text-xs">Map</span>
+            </button>
+            <button data-event="click:showAlerts" class="flex-1 py-3 flex flex-col items-center justify-center text-gray-400">
+                <i class="fas fa-list text-lg mb-1"></i>
+                <span class="text-xs">Alerts</span>
+            </button>
+            <button data-event="click:openReportModal" class="flex-1 py-3 flex flex-col items-center justify-center text-gray-400">
+                <i class="fas fa-plus text-lg mb-1"></i>
+                <span class="text-xs">Report</span>
+            </button>
+            <button data-event="click:showProfile" class="flex-1 py-3 flex flex-col items-center justify-center text-gray-400">
+                <i class="fas fa-user text-lg mb-1"></i>
+                <span class="text-xs">Profile</span>
+            </button>
+        </div>
+    </nav>
+    <!-- @END_COMPONENT: BottomNavigation -->
+
+    <script>
+        // Mock JavaScript for demonstration - Replace with actual React/Angular functionality
+        (function() {
+            // TODO: Implement real-time Socket.io connection
+            // TODO: Integrate Google Maps API
+            // TODO: Implement geolocation services
+            // TODO: Add form validation and submission logic
+            // TODO: Implement alert filtering and search
+            
+            // Mock sidebar toggle for mobile
+            const sidebarToggle = document.querySelector('[data-event="click:toggleSidebar"]');
+            const sidebar = document.getElementById('alertsSidebar');
+            const closeSidebarBtn = document.querySelector('[data-event="click:closeSidebar"]');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
+            
+            if (closeSidebarBtn && sidebar) {
+                closeSidebarBtn.addEventListener('click', () => {
+                    sidebar.classList.add('-translate-x-full');
+                });
+            }
+            
+            // Mock modal functionality
+            const reportBtn = document.querySelector('[data-event="click:openReportModal"]');
+            const reportModal = document.getElementById('reportModal');
+            const closeModalBtn = document.querySelector('[data-event="click:closeReportModal"]');
+            
+            if (reportBtn && reportModal) {
+                reportBtn.addEventListener('click', () => {
+                    reportModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        reportModal.querySelector('.bg-white').classList.remove('scale-95');
+                        reportModal.querySelector('.bg-white').classList.add('scale-100');
+                    }, 10);
+                });
+            }
+            
+            if (closeModalBtn && reportModal) {
+                closeModalBtn.addEventListener('click', () => {
+                    reportModal.querySelector('.bg-white').classList.remove('scale-100');
+                    reportModal.querySelector('.bg-white').classList.add('scale-95');
+                    setTimeout(() => {
+                        reportModal.classList.add('hidden');
+                    }, 300);
+                });
+            }
+            
+            // Mock alert type selection
+            const alertTypeButtons = document.querySelectorAll('[data-event="click:selectAlertType"]');
+            alertTypeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    alertTypeButtons.forEach(b => b.classList.remove('border-primary', 'bg-blue-50'));
+                    btn.classList.add('border-primary', 'bg-blue-50');
+                });
+            });
+            
+            // Mock real-time updates
+            setInterval(() => {
+                const statusIndicator = document.querySelector('[data-bind="connectionStatus"]');
+                if (statusIndicator) {
+                    statusIndicator.textContent = Math.random() > 0.1 ? 'Live' : 'Reconnecting...';
+                }
+            }, 5000);
+            
+        })();
+    </script>
+</body>
+</html>
