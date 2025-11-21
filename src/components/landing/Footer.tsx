@@ -16,15 +16,10 @@ export const Footer = () => {
               Real-time accident zone alerts and road hazard notifications to keep you safe on every journey.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
-                <Github className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
+              <a href="https://github.com/AYUS2005"target="_blank"rel="noopener noreferrer"className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"><Github className="w-5 h-5" /></a>
+              <a href="https://www.linkedin.com/in/ayush-singh-7b4b0a248/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"><Linkedin className="w-5 h-5" /></a>
+              <a href="https://x.com/AyushSingh98398" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors"><Twitter className="w-5 h-5" /></a>
+
             </div>
           </div>
 

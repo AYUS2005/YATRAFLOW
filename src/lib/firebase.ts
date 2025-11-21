@@ -5,13 +5,15 @@ import { getFirestore } from 'firebase/firestore';
 // Firebase configuration
 // Replace with your Firebase project credentials
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAax9RJ5Vrb8EIXJWpw7HNvirYmc518hgY",
+  authDomain: "yatraflow-c2c84.firebaseapp.com",
+  projectId: "yatraflow-c2c84",
+  storageBucket: "yatraflow-c2c84.firebasestorage.app",
+  messagingSenderId: "1718051320",
+  appId: "1:1718051320:web:677d49516d0df4dc93760d",
+  measurementId: "G-VCXWSVLV08"
 };
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);

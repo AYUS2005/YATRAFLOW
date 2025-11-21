@@ -3,8 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useStore } from '@/store/useStore';
 import { SeverityLevel } from '@/types';
-
-const MAPTILER_API_KEY = 'YOUR_MAPTILER_API_KEY'; // Replace with your MapTiler API key
+import { useGeolocation } from '@/hooks/useGeolocation'; // ✅ GPS hook import
 
 const getSeverityColor = (severity: SeverityLevel): string => {
   const colors = {
@@ -17,6 +16,8 @@ const getSeverityColor = (severity: SeverityLevel): string => {
 };
 
 export const MapView = () => {
+  useGeolocation(); // ✅ Enable GPS tracking
+
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const userMarker = useRef<maplibregl.Marker | null>(null);
@@ -33,7 +34,25 @@ export const MapView = () => {
 
     map.current = new maplibregl.Map({
       container: mapContainer.current,
-      style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_API_KEY}`,
+      style: {
+        version: 8,
+        sources: {
+          'osm-tiles': {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+          },
+        },
+        layers: [
+          {
+            id: 'osm-layer',
+            type: 'raster',
+            source: 'osm-tiles',
+            minzoom: 0,
+            maxzoom: 19,
+          },
+        ],
+      },
       center: [77.5946, 12.9716], // Default: Bangalore
       zoom: 12,
       pitch: 45,
@@ -46,45 +65,39 @@ export const MapView = () => {
     };
   }, []);
 
-  // Update user location marker
+  // Update user location marker (GPS)
   useEffect(() => {
     if (!map.current || !userLocation) return;
 
     if (!userMarker.current) {
-      // Create user marker
       const el = document.createElement('div');
       el.className = 'w-6 h-6 bg-primary rounded-full border-4 border-primary-foreground shadow-lg pulse-glow';
-      
+
       userMarker.current = new maplibregl.Marker({ element: el })
         .setLngLat([userLocation.lng, userLocation.lat])
         .addTo(map.current);
 
-      // Center map on user location
       map.current.flyTo({
         center: [userLocation.lng, userLocation.lat],
         zoom: 14,
         duration: 2000,
       });
     } else {
-      // Update existing marker
       userMarker.current.setLngLat([userLocation.lng, userLocation.lat]);
     }
   }, [userLocation]);
 
-  // Update accident zone markers
+  // Accident zone markers
   useEffect(() => {
     if (!map.current) return;
 
-    // Clear existing zone markers
     zoneMarkers.current.forEach((marker) => marker.remove());
     zoneMarkers.current = [];
 
-    // Add new zone markers
     accidentZones.forEach((zone) => {
       const el = document.createElement('div');
       el.className = 'relative';
-      
-      // Outer circle (radius indicator)
+
       const radiusCircle = document.createElement('div');
       radiusCircle.style.cssText = `
         width: 60px;
@@ -100,7 +113,6 @@ export const MapView = () => {
       `;
       el.appendChild(radiusCircle);
 
-      // Inner marker
       const marker = document.createElement('div');
       marker.style.cssText = `
         width: 20px;
@@ -132,15 +144,13 @@ export const MapView = () => {
     });
   }, [accidentZones]);
 
-  // Update hazard markers
+  // Hazard markers
   useEffect(() => {
     if (!map.current) return;
 
-    // Clear existing hazard markers
     hazardMarkers.current.forEach((marker) => marker.remove());
     hazardMarkers.current = [];
 
-    // Add new hazard markers
     hazards.forEach((hazard) => {
       const el = document.createElement('div');
       el.className = 'text-2xl';
